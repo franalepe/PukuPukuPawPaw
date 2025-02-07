@@ -1,6 +1,6 @@
 // Variables para CallMeBot
-const callMeBotApiKey = "3359128";
-const callMeBotPhone = "+51981433349";
+const callMeBotApiKey = "2105614";
+const callMeBotPhone = "584126615015";
 
 // Función para enviar mensajes por WhatsApp
 function enviarMensajeWhatsApp(mensaje) {
