@@ -104,7 +104,7 @@ function mostrarFlecha(modalSelector) {
 // Función para mostrar el texto emergente
 function mostrarTextoEmergente() {
   const textoEmergente = document.createElement('div');
-  textoEmergente.textContent = "Puedes tocar las flores :D";
+  textoEmergente.textContent = "Toca todas las flores :D";
   textoEmergente.style.position = 'fixed';
   textoEmergente.style.top = '20px';
   textoEmergente.style.left = '50%';
