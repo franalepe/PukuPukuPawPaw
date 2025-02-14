@@ -284,3 +284,49 @@ h1 {
   pointer-events: none;
   z-index: 10001;
 }
+
+#boton-oculto {
+  display: none; /* Oculto inicialmente */
+  margin-top: 50px;
+  text-align: center;
+  opacity: 0; /* Inicia invisible */
+  transition: opacity 1s ease; /* Transición suave */
+}
+
+#boton-oculto.visible {
+  opacity: 1; /* Visible con transición */
+}
+
+#btn-bloqueado {
+  background-color: #f4d03f;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 18px;
+  cursor: not-allowed; /* Cursor de "no permitido" */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px; /* Espacio entre el candado y el texto */
+  opacity: 0.7; /* Hace que el botón se vea "bloqueado" */
+  transition: opacity 0.3s ease;
+}
+
+#btn-bloqueado.desbloqueado {
+  opacity: 1;
+  cursor: pointer;
+  background-color: #e91e63; /* Cambia el color cuando esté desbloqueado */
+}
+
+/* Estilos para el contador */
+#contador {
+  font-size: 14px;
+  color: #6b4226;
+  margin-left: 10px;
+}
+
+/* Estilos para el icono del candado */
+#icono-candado {
+  font-size: 20px;
+}
