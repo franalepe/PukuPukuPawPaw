@@ -445,3 +445,56 @@ function mostrarModalHoras() {
     document.getElementById('drop-area-right').style.display = 'none';
   });
 }
+
+// Obtén los elementos del DOM
+const botonOculto = document.getElementById('boton-oculto');
+const btnBloqueado = document.getElementById('btn-bloqueado');
+const contador = document.getElementById('contador');
+const iconoCandado = document.getElementById('icono-candado');
+const closeButton = document.querySelector('#second-modal .close'); // Botón de cierre (X) de la ventana de la propuesta
+
+closeButton.addEventListener('click', function () {
+  botonOculto.style.display = 'block'; // Muestra el contenedor
+  setTimeout(() => {
+    botonOculto.classList.add('visible'); // Aplica la transición
+  }, 10); // Pequeño delay para que la transición funcione
+});
+
+
+// Fecha de desbloqueo: 15 de febrero de 2025
+const fechaDesbloqueo = new Date('2025-02-15T00:00:00');
+
+// Función para actualizar el contador
+function actualizarContador() {
+  const ahora = new Date();
+  const diferencia = fechaDesbloqueo - ahora;
+
+  if (diferencia <= 0) {
+    // Si la fecha ya pasó, desbloquea el botón
+    btnBloqueado.disabled = false;
+    btnBloqueado.classList.add('desbloqueado');
+    iconoCandado.textContent = '🔓'; // Cambia el candado a desbloqueado
+    contador.textContent = '¡Desbloqueado!';
+    return;
+  }
+
+  // Calcula los días, horas, minutos y segundos restantes
+  const dias = Math.floor(diferencia / (1000 * 60 * 60 * 24));
+  const horas = Math.floor((diferencia % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+  const minutos = Math.floor((diferencia % (1000 * 60 * 60)) / (1000 * 60));
+  const segundos = Math.floor((diferencia % (1000 * 60)) / 1000);
+
+  // Muestra el contador
+  contador.textContent = `${dias}d ${horas}h ${minutos}m ${segundos}s`;
+
+  // Actualiza el contador cada segundo
+  setTimeout(actualizarContador, 1000);
+}
+
+// Función para mostrar el botón secreto al cerrar la ventana de la propuesta
+closeButton.addEventListener('click', function () {
+  botonOculto.style.display = 'block'; // Muestra el botón secreto
+});
+
+// Inicia el contador
+actualizarContador();
