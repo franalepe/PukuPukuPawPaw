@@ -462,7 +462,7 @@ closeButton.addEventListener('click', function () {
 
 
 // Fecha de desbloqueo: 15 de febrero de 2025
-const fechaDesbloqueo = new Date('2025-02-15T00:00:00');
+const fechaDesbloqueo = new Date('2025-02-18T00:00:00');
 
 // Función para actualizar el contador
 function actualizarContador() {
