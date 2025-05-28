@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Puzzle Picrow</title>
+  <style>
+    body {
+      font-family: 'serif';
+      font-weight: bold;
+      color: #6b4226;
+      text-align: center;
+      padding: 20px;
+      margin: 0;
+      background-color: rgba(255, 204, 203, 0.8);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      overflow: hidden;
+    }
+
+    h1 {
+      color: #d88a8a;
+      font-size: 26px;
+      font-family: 'Dancing Script', cursive;
+      margin-bottom: 20px;
+    }
+
+    .container {
+      background-color: rgba(255, 239, 219, 0.9);
+      padding: 20px;
+      border-radius: 15px;
+      box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+      max-width: 500px;
+      width: 100%;
+      animation: fadeIn 2s ease-in-out;
+    }
+
+    .puzzle-container {
+      width: 300px;
+      height: 300px;
+      margin: 0 auto 20px;
+      position: relative;
+      border: 3px solid #e91e63;
+      border-radius: 10px;
+      overflow: hidden;
+    }
+
+    .puzzle-piece {
+      width: 100px;
+      height: 100px;
+      position: absolute;
+      box-sizing: border-box;
+      border: 1px solid #fff;
+      transition: all 0.2s ease;
+      background-size: 300px 300px;
+      touch-action: none; /* Mejora para dispositivos táctiles */
+    }
+
+    .puzzle-piece:hover {
+      box-shadow: 0 0 5px rgba(233, 30, 99, 0.5);
+    }
+
+    .puzzle-piece.draggable {
+      cursor: grab;
+    }
+
+    .puzzle-piece.dragging {
+      opacity: 0.8;
+      z-index: 1000;
+      cursor: grabbing;
+    }
+
+    .empty {
+      background-image: none !important;
+      background-color: transparent;
+      border: none;
+    }
+
+    .controls {
+      margin-top: 20px;
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #f4d03f;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+    }
+
+    button:hover {
+      transform: scale(1.05);
+    }
+
+    .message {
+      margin-top: 20px;
+      font-size: 18px;
+      color: #e91e63;
+      height: 24px;
+    }
+
+    .moves {
+      margin-top: 10px;
+      font-size: 16px;
+      color: #6b4226;
+    }
+
+    .success-modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background-color: rgba(0, 0, 0, 0.5);
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      animation: fadeIn 0.5s;
+    }
+
+    .modal-content {
+      background-color: #fff;
+      padding: 25px;
+      border-radius: 15px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+
+    .gif-container {
+      display: flex;
+      justify-content: center;
+      margin: 20px 0;
+    }
+
+    .gif-container img {
+      width: 100px;
+      height: auto;
+      margin: 0 10px;
+    }
+
+    .hint-button {
+      background-color: #d88a8a;
+    }
+
+    @keyframes fadeIn {
+      0% { opacity: 0; }
+      100% { opacity: 1; }
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+      100% { transform: scale(1); }
+    }
+
+    .luciernaga {
+      position: fixed;
+      width: 4px;
+      height: 4px;
+      background: radial-gradient(circle, #fff8a0 20%, #f4d03f 70%, transparent 100%);
+      border-radius: 50%;
+      pointer-events: none;
+      animation: brillo 2s infinite alternate;
+      filter: blur(1px);
+      box-shadow: 0 0 15px #fff8a0;
+      z-index: 9999;
+    }
+
+    @keyframes vuelo {
+      0% {
+        transform: translate(0, 0) scale(0.8);
+      }
+      25% {
+        transform: translate(20px, -15px) scale(1);
+      }
+      50% {
+        transform: translate(-10px, 25px) scale(0.9);
+      }
+      75% {
+        transform: translate(15px, 10px) scale(1.1);
+      }
+      100% {
+        transform: translate(-20px, -5px) scale(0.8);
+      }
+    }
+
+    @keyframes brillo {
+      0% {
+        opacity: 0.4;
+      }
+      100% {
+        opacity: 0.9;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Puzzle Picrow</h1>
+    
+    <div class="puzzle-container" id="puzzle">
+      <!-- Las piezas del puzzle se generarán con JavaScript -->
+    </div>
+    
+    <div class="moves">Movimientos: <span id="move-count">0</span></div>
+    <div class="message" id="message"></div>
+    
+    <div class="controls">
+      <button id="shuffle-button">Mezclar</button>
+      <button id="hint-button" class="hint-button">Pista</button>
+    </div>
+  </div>
+
+  <!-- Modal de éxito -->
+  <div id="success-modal" class="success-modal">
+    <div class="modal-content">
+      <h2>¡Felicidades!</h2>
+      <p>Has completado el puzzle. ¡Eres increíble!</p>
+      <div class="gif-container">
+        <img src="./source/img/bubududu.gif" alt="Celebración">
+        <img src="./source/img/love.gif" alt="Amor">
+      </div>
+      <button id="close-modal">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- Audio para el movimiento de piezas -->
+  <audio id="move-sound" preload="auto">
+    <source src="./source/audio/the-sound-of-a-move-in-a-game-with-one-piece-chess.mp3" type="audio/mpeg">
+  </audio>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const puzzle = document.getElementById('puzzle');
+      const shuffleButton = document.getElementById('shuffle-button');
+      const hintButton = document.getElementById('hint-button');
+      const moveCount = document.getElementById('move-count');
+      const message = document.getElementById('message');
+      const successModal = document.getElementById('success-modal');
+      const closeModalButton = document.getElementById('close-modal');
+      const moveSound = document.getElementById('move-sound');
+      
+      let moves = 0;
+      let pieces = [];
+      let emptyPos = { row: 2, col: 2 }; // Posición inicial del espacio vacío (esquina inferior derecha)
+      let showingHint = false;
+      let currentImage = './source/img/sawako.gif'; // Imagen inicial
+      let puzzleLevel = 1; // Nivel 1: Sawako, Nivel 2: Imagen especial
+      let isDragging = false;
+      let draggedPiece = null;
+      
+      // Crear las piezas del puzzle
+      function createPuzzle() {
+        puzzle.innerHTML = '';
+        pieces = [];
+        
+        for (let row = 0; row < 3; row++) {
+          for (let col = 0; col < 3; col++) {
+            const piece = document.createElement('div');
+            piece.className = 'puzzle-piece';
+            
+            // La última pieza (2,2) es el espacio vacío
+            if (row === 2 && col === 2) {
+              piece.classList.add('empty');
+            } else {
+              // Establecer la imagen de fondo
+              piece.style.backgroundImage = `url('${currentImage}')`;
+              // Establecer la posición de la imagen de fondo para mostrar la parte correcta
+              piece.style.backgroundPosition = `${-col * 100}px ${-row * 100}px`;
+            }
+            
+            // Posicionar la pieza en el tablero
+            piece.style.top = `${row * 100}px`;
+            piece.style.left = `${col * 100}px`;
+            
+            // Guardar la posición original para verificar si el puzzle está resuelto
+            piece.dataset.row = row;
+            piece.dataset.col = col;
+            
+            puzzle.appendChild(piece);
+            pieces.push({
+              element: piece,
+              currentRow: row,
+              currentCol: col,
+              targetRow: row,
+              targetCol: col
+            });
+          }
+        }
+        
+        // Actualizar las piezas arrastrables
+        updateDraggablePieces();
+      }
+      
+      // Actualizar qué piezas son arrastrables (solo las adyacentes al espacio vacío)
+      function updateDraggablePieces() {
+        // Primero, quitar la clase draggable de todas las piezas
+        pieces.forEach(piece => {
+          piece.element.classList.remove('draggable');
+          
+          // Quitar los event listeners de arrastre
+          piece.element.removeEventListener('mousedown', handleDragStart);
+          piece.element.removeEventListener('touchstart', handleDragStart);
+        });
+        
+        // Luego, añadir la clase draggable solo a las piezas adyacentes al espacio vacío
+        pieces.forEach(piece => {
+          const row = piece.currentRow;
+          const col = piece.currentCol;
+          
+          // Verificar si la pieza es adyacente al espacio vacío
+          const isAdjacent = 
+            (row === emptyPos.row && Math.abs(col - emptyPos.col) === 1) || 
+            (col === emptyPos.col && Math.abs(row - emptyPos.row) === 1);
+          
+          if (isAdjacent && !piece.element.classList.contains('empty')) {
+            piece.element.classList.add('draggable');
+            
+            // Añadir event listeners para arrastre
+            piece.element.addEventListener('mousedown', handleDragStart);
+            piece.element.addEventListener('touchstart', handleDragStart);
+          }
+        });
+      }
+      
+      // Manejar el inicio del arrastre
+      function handleDragStart(e) {
+        e.preventDefault();
+        
+        // Solo permitir arrastrar piezas con la clase 'draggable'
+        if (!this.classList.contains('draggable')) return;
+        
+        isDragging = true;
+        draggedPiece = this;
+        draggedPiece.classList.add('dragging');
+        
+        // Encontrar la pieza en el array
+        const pieceIndex = pieces.findIndex(p => p.element === draggedPiece);
+        const piece = pieces[pieceIndex];
+        
+        // Guardar la posición inicial para el arrastre
+        let startX, startY;
+        if (e.type === 'mousedown') {
+          startX = e.clientX;
+          startY = e.clientY;
+        } else {
+          startX = e.touches[0].clientX;
+          startY = e.touches[0].clientY;
+        }
+        
+        // Añadir event listeners para el movimiento y soltar
+        document.addEventListener('mousemove', handleDragMove);
+        document.addEventListener('touchmove', handleDragMove, { passive: false });
+        document.addEventListener('mouseup', handleDragEnd);
+        document.addEventListener('touchend', handleDragEnd);
+        
+        // Manejar el movimiento durante el arrastre
+        function handleDragMove(e) {
+          if (!isDragging) return;
+          
+          e.preventDefault();
+          
+          let clientX, clientY;
+          if (e.type === 'mousemove') {
+            clientX = e.clientX;
+            clientY = e.clientY;
+          } else {
+            clientX = e.touches[0].clientX;
+            clientY = e.touches[0].clientY;
+          }
+          
+          // Calcular el desplazamiento
+          const deltaX = clientX - startX;
+          const deltaY = clientY - startY;
+          
+          // Limitar el movimiento a la dirección del espacio vacío
+          let newX = parseInt(draggedPiece.style.left);
+          let newY = parseInt(draggedPiece.style.top);
+          
+          if (piece.currentRow === emptyPos.row) {
+            // Movimiento horizontal
+            newX = parseInt(draggedPiece.style.left) + deltaX;
+            // Limitar el movimiento horizontal
+            const emptyX = emptyPos.col * 100;
+            if ((emptyPos.col > piece.currentCol && newX > emptyX) || 
+                (emptyPos.col < piece.currentCol && newX < emptyX)) {
+              newX = parseInt(draggedPiece.style.left);
+            }
+          } else if (piece.currentCol === emptyPos.col) {
+            // Movimiento vertical
+            newY = parseInt(draggedPiece.style.top) + deltaY;
+            // Limitar el movimiento vertical
+            const emptyY = emptyPos.row * 100;
+            if ((emptyPos.row > piece.currentRow && newY > emptyY) || 
+                (emptyPos.row < piece.currentRow && newY < emptyY)) {
+              newY = parseInt(draggedPiece.style.top);
+            }
+          }
+          
+          // Actualizar la posición
+          draggedPiece.style.left = `${newX}px`;
+          draggedPiece.style.top = `${newY}px`;
+          
+          // Actualizar el punto de inicio para el próximo movimiento
+          startX = clientX;
+          startY = clientY;
+        }
+        
+        // Manejar el final del arrastre
+        function handleDragEnd() {
+          if (!isDragging) return;
+          
+          isDragging = false;
+          draggedPiece.classList.remove('dragging');
+          
+          // Encontrar la pieza en el array
+          const pieceIndex = pieces.findIndex(p => p.element === draggedPiece);
+          const piece = pieces[pieceIndex];
+          
+          // Verificar si la pieza está lo suficientemente cerca del espacio vacío
+          const pieceRect = draggedPiece.getBoundingClientRect();
+          const emptyRect = pieces.find(p => p.currentRow === emptyPos.row && p.currentCol === emptyPos.col).element.getBoundingClientRect();
+          
+          const distance = Math.sqrt(
+            Math.pow(pieceRect.left - emptyRect.left, 2) + 
+            Math.pow(pieceRect.top - emptyRect.top, 2)
+          );
+          
+          // Si la pieza está cerca del espacio vacío, moverla
+          if (distance < 100) {
+            // Reproducir sonido de movimiento
+            moveSound.currentTime = 0;
+            moveSound.play();
+            
+            // Mover la pieza a la posición del espacio vacío
+            draggedPiece.style.top = `${emptyPos.row * 100}px`;
+            draggedPiece.style.left = `${emptyPos.col * 100}px`;
+            
+            // Actualizar la posición actual de la pieza
+            piece.currentRow = emptyPos.row;
+            piece.currentCol = emptyPos.col;
+            
+            // Actualizar la posición del espacio vacío
+            const oldEmptyRow = emptyPos.row;
+            const oldEmptyCol = emptyPos.col;
+            emptyPos.row = parseInt(draggedPiece.dataset.row);
+            emptyPos.col = parseInt(draggedPiece.dataset.col);
+            
+            // Incrementar el contador de movimientos
+            moves++;
+            moveCount.textContent = moves;
+            
+            // Actualizar las piezas arrastrables
+            updateDraggablePieces();
+            
+            // Verificar si el puzzle está resuelto
+            if (isPuzzleSolved()) {
+              setTimeout(() => {
+                if (puzzleLevel === 1) {
+                  // Cambiar al siguiente nivel
+                  puzzleLevel = 2;
+                  currentImage = './source/img/PaoxFran.png';
+                  resetPuzzle();
+                  message.textContent = "¡Ahora completa el segundo puzzle!";
+                  setTimeout(() => {
+                    message.textContent = "";
+                  }, 3000);
+                } else {
+                  // Mostrar mensaje de éxito final
+                  showSuccessMessage();
+                }
+              }, 500);
+            }
+          } else {
+            // Si no está lo suficientemente cerca, volver a la posición original
+            draggedPiece.style.top = `${piece.currentRow * 100}px`;
+            draggedPiece.style.left = `${piece.currentCol * 100}px`;
+          }
+          
+          // Quitar los event listeners
+          document.removeEventListener('mousemove', handleDragMove);
+          document.removeEventListener('touchmove', handleDragMove);
+          document.removeEventListener('mouseup', handleDragEnd);
+          document.removeEventListener('touchend', handleDragEnd);
+          
+          draggedPiece = null;
+        }
+      }
+      
+      // Reiniciar el puzzle con la nueva imagen
+      function resetPuzzle() {
+        createPuzzle();
+        shufflePuzzle();
+      }
+      
+      // Verificar si el puzzle está resuelto
+      function isPuzzleSolved() {
+        return pieces.every(piece => 
+          piece.currentRow === parseInt(piece.element.dataset.row) && 
+          piece.currentCol === parseInt(piece.element.dataset.col)
+        );
+      }
+      
+      // Mostrar mensaje de éxito
+      function showSuccessMessage() {
+        successModal.style.display = 'flex';
+        crearLuciernagas();
+      }
+      
+      // Mezclar el puzzle de manera que sea solvable
+      function shufflePuzzle() {
+        // Reiniciar contador de movimientos
+        moves = 0;
+        moveCount.textContent = moves;
+        message.textContent = '';
+        
+        // Realizar una serie de movimientos aleatorios válidos
+        // Esto garantiza que el puzzle sea solvable
+        for (let i = 0; i < 100; i++) {
+          const possibleMoves = [];
+          
+          // Arriba
+          if (emptyPos.row > 0) {
+            possibleMoves.push({ row: emptyPos.row - 1, col: emptyPos.col });
+          }
+          // Abajo
+          if (emptyPos.row < 2) {
+            possibleMoves.push({ row: emptyPos.row + 1, col: emptyPos.col });
+          }
+          // Izquierda
+          if (emptyPos.col > 0) {
+            possibleMoves.push({ row: emptyPos.row, col: emptyPos.col - 1 });
+          }
+          // Derecha
+          if (emptyPos.col < 2) {
+            possibleMoves.push({ row: emptyPos.row, col: emptyPos.col + 1 });
+          }
+          
+          // Seleccionar un movimiento aleatorio
+          const randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+          
+          // Mover la pieza (sin incrementar el contador de movimientos)
+          const pieceIndex = pieces.findIndex(p => 
+            p.currentRow === randomMove.row && p.currentCol === randomMove.col
+          );
+          
+          if (pieceIndex !== -1) {
+            const piece = pieces[pieceIndex];
+            
+            // Mover la pieza a la posición del espacio vacío
+            piece.element.style.top = `${emptyPos.row * 100}px`;
+            piece.element.style.left = `${emptyPos.col * 100}px`;
+            
+            // Actualizar la posición actual de la pieza
+            piece.currentRow = emptyPos.row;
+            piece.currentCol = emptyPos.col;
+            
+            // Actualizar la posición del espacio vacío
+            emptyPos.row = randomMove.row;
+            emptyPos.col = randomMove.col;
+          }
+        }
+        
+        // Reiniciar el contador de movimientos después de mezclar
+        moves = 0;
+        moveCount.textContent = moves;
+        
+        // Actualizar las piezas arrastrables
+        updateDraggablePieces();
+      }
+      
+      // Mostrar pista
+      function showHint() {
+        if (showingHint) return;
+        
+        showingHint = true;
+        message.textContent = "Mira la imagen completa como pista";
+        
+        // Mostrar temporalmente todas las piezas en su posición correcta
+        pieces.forEach(piece => {
+          const originalRow = parseInt(piece.element.dataset.row);
+          const originalCol = parseInt(piece.element.dataset.col);
+          
+          // Guardar la posición actual
+          piece.tempTop = piece.element.style.top;
+          piece.tempLeft = piece.element.style.left;
+          
+          // Mostrar en la posición correcta
+          piece.element.style.top = `${originalRow * 100}px`;
+          piece.element.style.left = `${originalCol * 100}px`;
+        });
+        
+        // Ocultar la pista después de 2 segundos
+        setTimeout(hideHint, 2000);
+      }
+      
+      // Ocultar pista
+      function hideHint() {
+        if (!showingHint) return;
+        
+        showingHint = false;
+        message.textContent = "";
+        
+        // Restaurar las posiciones actuales
+        pieces.forEach(piece => {
+          if (piece.tempTop && piece.tempLeft) {
+            piece.element.style.top = piece.tempTop;
+            piece.element.style.left = piece.tempLeft;
+            
+            // Limpiar las posiciones temporales
+            delete piece.tempTop;
+            delete piece.tempLeft;
+          }
+        });
+      }
+      
+      // Función para crear luciérnagas
+      function crearLuciernagas() {
+        const cantidad = 15; // Número de luciérnagas
+        const container = document.body;
+        
+        for(let i = 0; i < cantidad; i++) {
+          const luciernaga = document.createElement('div');
+          luciernaga.className = 'luciernaga';
+          
+          // Posición inicial aleatoria
+          luciernaga.style.left = Math.random() * 100 + 'vw';
+          luciernaga.style.top = Math.random() * 100 + 'vh';
+          
+          // Animación personalizada
+          const duracion = 3 + Math.random() * 4; // Entre 3 y 7 segundos
+          const delay = Math.random() * 5;
+          
+          luciernaga.style.animation = `
+            vuelo ${duracion}s infinite alternate ease-in-out,
+            brillo ${2 + Math.random() * 3}s infinite alternate
+          `;
+          luciernaga.style.animationDelay = `${delay}s`;
+          
+          container.appendChild(luciernaga);
+          
+          // Movimiento adicional
+          setInterval(() => {
+            luciernaga.style.transform = `translate(
+              ${Math.random() * 20 - 10}px,
+              ${Math.random() * 20 - 10}px
+            )`;
+          }, 3000);
+        }
+      }
+      
+      // Event listeners
+      shuffleButton.addEventListener('click', shufflePuzzle);
+      hintButton.addEventListener('click', showHint);
+      closeModalButton.addEventListener('click', () => {
+        successModal.style.display = 'none';
+      });
+      
+      // Inicializar el puzzle
+      createPuzzle();
+      // Mezclar el puzzle al inicio
+      shufflePuzzle();
+      
+      // Crear algunas luciérnagas al cargar la página
+      crearLuciernagas();
+    });
+  </script>
+</body>
+</html>

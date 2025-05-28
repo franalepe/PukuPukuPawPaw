@@ -21,6 +21,9 @@ window.onload = function () {
 
     // Mostrar la segunda ventana (la de la pregunta de San Valentín)
     document.getElementById('second-modal').style.display = 'flex';
+    
+    // Mostrar la flecha apuntando a la X del modal de San Valentín
+    mostrarFlecha('#second-modal');
   });
 };
 
@@ -452,9 +455,8 @@ closeButton.addEventListener('click', function () {
   }, 10); // Pequeño delay para que la transición funcione
 });
 
-
-// Fecha de desbloqueo: 15 de febrero de 2025
-const fechaDesbloqueo = new Date('2025-03-30T00:00:00');
+// Fecha de desbloqueo: 28 de mayo de 2025
+const fechaDesbloqueo = new Date('2025-05-28T00:00:00');
 
 // Función para actualizar el contador
 function actualizarContador() {
@@ -486,6 +488,154 @@ function actualizarContador() {
 // Función para mostrar el botón secreto al cerrar la ventana de la propuesta
 closeButton.addEventListener('click', function () {
   botonOculto.style.display = 'block'; // Muestra el botón secreto
+});
+
+// Crear un elemento de audio para la música del botón secreto
+const pianoMusic = document.createElement('audio');
+pianoMusic.src = "./source/audio/Kimi ni Todoke OST - Pearl White Story - Piano Cover.mp3";
+pianoMusic.loop = true; // Reproducir en bucle
+pianoMusic.volume = 0.5; // Volumen medio
+
+// Mensajes de agradecimiento para mostrar secuencialmente
+const mensajesAgradecimiento = [
+  "Gracias por llegar a mi vida, Paola...",
+  "Por recomendarme un shoujo tan hermoso como Kimi ni Todoke...",
+  "Por compartir momentos especiales conmigo...",
+  "Por ser tú misma, con tu forma de ser tan única...",
+  "Espero que te gusten las flores y este mini detalle que te hice con mucho cariño...",
+  "Son cosas que de alguna manera me recuerdan a ti."
+];
+
+// Función para mostrar mensajes secuenciales con transición suave
+function mostrarMensajesSecuenciales(mensajes, indice = 0) {
+  if (indice >= mensajes.length) {
+    // Cuando se terminan de mostrar todos los mensajes, redirigir a Detalle.html
+    setTimeout(() => {
+      window.location.href = 'Detalle.html';
+    }, 2000);
+    return;
+  }
+  
+  const mensajeElement = document.createElement('div');
+  mensajeElement.textContent = mensajes[indice];
+  mensajeElement.style.position = 'fixed';
+  mensajeElement.style.top = '50%';
+  mensajeElement.style.left = '50%';
+  mensajeElement.style.transform = 'translate(-50%, -50%)';
+  mensajeElement.style.backgroundColor = '#fff';
+  mensajeElement.style.padding = '20px';
+  mensajeElement.style.borderRadius = '10px';
+  mensajeElement.style.boxShadow = '0 0 15px rgba(0, 0, 0, 0.3)';
+  mensajeElement.style.zIndex = '20000';
+  mensajeElement.style.maxWidth = '80%';
+  mensajeElement.style.textAlign = 'center';
+  mensajeElement.style.fontSize = '18px';
+  mensajeElement.style.fontFamily = 'serif';
+  mensajeElement.style.color = '#d88a8a';
+  mensajeElement.style.opacity = '0';
+  mensajeElement.style.transition = 'opacity 1s ease';
+  
+  document.body.appendChild(mensajeElement);
+  
+  // Hacer aparecer el mensaje
+  setTimeout(() => {
+    mensajeElement.style.opacity = '1';
+    
+    // Desvanecer el mensaje después de 3 segundos
+    setTimeout(() => {
+      mensajeElement.style.opacity = '0';
+      
+      // Eliminar el mensaje y mostrar el siguiente
+      setTimeout(() => {
+        mensajeElement.remove();
+        mostrarMensajesSecuenciales(mensajes, indice + 1);
+      }, 2000);
+    }, 3000);
+  }, 2000);
+}
+
+// Función para crear luciérnagas
+function crearLuciernagas() {
+  const cantidad = 15; // Número de luciérnagas
+  const container = document.body;
+  
+  for(let i = 0; i < cantidad; i++) {
+    const luciernaga = document.createElement('div');
+    luciernaga.className = 'luciernaga';
+    
+    // Posición inicial aleatoria
+    luciernaga.style.left = Math.random() * 100 + 'vw';
+    luciernaga.style.top = Math.random() * 100 + 'vh';
+    
+    // Animación personalizada
+    const duracion = 3 + Math.random() * 4; // Entre 3 y 7 segundos
+    const delay = Math.random() * 5;
+    
+    luciernaga.style.animation = `
+      vuelo ${duracion}s infinite alternate ease-in-out,
+      brillo ${2 + Math.random() * 3}s infinite alternate
+    `;
+    luciernaga.style.animationDelay = `${delay}s`;
+    
+    container.appendChild(luciernaga);
+    
+    // Movimiento adicional
+    setInterval(() => {
+      luciernaga.style.transform = `translate(
+        ${Math.random() * 20 - 10}px,
+        ${Math.random() * 20 - 10}px
+      )`;
+    }, 3000);
+  }
+}
+
+// Añadir funcionalidad al botón secreto cuando se desbloquee
+btnBloqueado.addEventListener('click', function() {
+  if (!btnBloqueado.disabled) {
+    // Crear efecto de luciérnagas
+    crearLuciernagas();
+    
+    // Reproducir la música de piano
+    pianoMusic.play();
+    
+    // Hacer que el botón desaparezca con una transición suave
+    botonOculto.style.transition = "opacity 1s ease";
+    botonOculto.style.opacity = "0";
+    
+    // Eliminar el botón del DOM después de la transición
+    setTimeout(() => {
+      botonOculto.style.display = "none";
+      
+      // Enviar mensaje por Telegram
+      enviarMensajeTelegram("Paola ha desbloqueado y presionado el botón secreto.");
+      
+      // Mostrar un mensaje temporal
+      const mensajeSecreto = document.createElement('div');
+      mensajeSecreto.textContent = "Has desbloqueado una melodía especial...";
+      mensajeSecreto.style.position = 'fixed';
+      mensajeSecreto.style.top = '20px';
+      mensajeSecreto.style.left = '50%';
+      mensajeSecreto.style.transform = 'translateX(-50%)';
+      mensajeSecreto.style.backgroundColor = '#fff';
+      mensajeSecreto.style.padding = '10px';
+      mensajeSecreto.style.borderRadius = '5px';
+      mensajeSecreto.style.boxShadow = '0 0 10px rgba(0, 0, 0, 0.5)';
+      mensajeSecreto.style.zIndex = '10000';
+      document.body.appendChild(mensajeSecreto);
+      
+      // Desvanecer el mensaje después de 5 segundos
+      setTimeout(() => {
+        mensajeSecreto.style.transition = 'opacity 1s';
+        mensajeSecreto.style.opacity = '0';
+        setTimeout(() => {
+          mensajeSecreto.remove();
+          
+          // Mostrar los mensajes de agradecimiento secuencialmente
+          mostrarMensajesSecuenciales(mensajesAgradecimiento);
+        }, 1000);
+      }, 5000);
+    }, 1000);
+  }
 });
 
 // Inicia el contador
