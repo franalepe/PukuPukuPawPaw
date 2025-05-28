@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta property="og:title" content="¡Para Paola!">
+<meta property="og:description" content="Azuagro, o Chivoconfrenillo...">
+<meta property="og:image" content="https://www.yourdecoration.es/cdn/shop/files/Poster-Sailor-Moon-61x91-5cm-Abystyle-GBYDCO510_500x.jpg?v=1721810714">
+<meta property="og:url" content="127pukupukupawpaw.netlify.app">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>¿Quieres ser mi San Valentín, Paola? 🌻</title>
+  <link rel="stylesheet" href="./css/styles.css">
+</head>
+<body>
+  
+
+  <!-- Ventana emergente al entrar -->
+  <div id="welcome-modal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <p>Hola, Paola. Espero estés muy bien.</p>
+      <p>No te asustes con esta página, jdsajdjajd. Solo tiene la finalidad de hacerte una sencilla pregunta, y yo espero de ti una simple respuesta.</p>
+      <p>La verdad, espero que nada de esto te incomode. Me esforcé bastante en hacerla, por ende apreciaría muchísimo de ti honestidad.</p>
+      <img src="./source/img/osito.gif" alt="Osito" style="width: 100px;">
+    </div>
+  </div>
+  
+  <!-- Modal para la segunda ventana (después de cerrar la primera) -->
+<div id="second-modal" class="modal">
+  <div class="modal-content">
+    <span class="close">&times;</span>
+    <h1>En poco tiempo te has vuelto <span class="special">especial</span> para mí.</h1>
+    <p>¿Te gustaría ser mi <span class="valentin">San Valentín</span>? <img src="./source/img/mini_girasol.png" alt="Girasol" class="girasol-icon"></p>
+    <div class="buttons">
+      <button id="btn-si">¡Sí!</button>
+      <button id="btn-no">No</button>
+    </div>
+  </div>
+</div>
+  
+<!-- Botón secreto (fuera de la ventana de la propuesta) -->
+<div id="boton-oculto" style="display: none; margin-top: 50px; text-align: center;">
+  <button id="btn-bloqueado" disabled>
+    <span id="icono-candado">🔒</span> Botón secreto
+    <span id="contador"></span>
+  </button>
+</div>
+  
+  <!-- Modal para "Sí" -->
+  <div id="modal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <p>¡ME ALEGRA SABER QUE NO ERES UNA KPOPER OTAKU FEA!, JAJDSAJDAJS. *nomentira, Aunque seas lo anterior, ¡Me hiciste feliz!</p>
+      <p>Estoy muy emocionado. EN TU IDIOMA 127PukuPukupawpaw. ¡Espero el 14 de febrero con ansias!.</p>
+    </div>
+  </div>
+  
+  
+
+  <div id="tercer-modal" class="modal">
+    <div class="modal-content3">
+      <!-- webada contenedor de gift -->
+      <div id="gif-container" style="display: none;">
+        <img id="gif1" src="./source/img/bubu2.gif" alt="Love" class="movable-gif" style="width: 80px; position: absolute; left: 120.358px; top: 486.151px;">
+        <img id="gif2" src="./source/img/bubububududu.gif" alt="Bubu" class="movable-gif" style="width: 80px; position: absolute; left: 186.167px; top: 490.823px;">
+      </div>
+      
+      <!-- webada area para el gift -->
+        <div id="drop-area-left" style="display: none;">
+          <div class="drop-zone">Pao, coloca un GIF aquí</div>
+        </div>
+        
+        <div id="drop-area-right" style="display: none;">
+          <div class="drop-zone">Chivoconfrenillo, coloca el otro GIF aquí</div>
+        </div>
+
+    </div>
+  </div>
+  
+  <div id="modal-mensaje" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <p>Ves como me haces caso en todo lo que te digo? :p Pa la prox te pido que te tires de un barranco JSDAJDAKAKSSK.</p>
+      <img src="./source/img/love.gif" alt="Love" style="width: 100px;">
+    </div>
+  </div>  
+  
+  <!-- Modal para selección de horas -->
+  <div id="modal-horas" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <p>Amandio Plaza el 14 de febrero, pero ¿a qué hora?</p>
+      <select id="hora-select">
+        <option value="12:15">12:15 PM</option>
+        <option value="1:00">1:00 PM</option>
+        <option value="1:30">1:30 PM</option>
+        <option value="2:00">2:00 PM</option>
+      </select>
+      <button id="btn-confirmar">Confirmar</button>
+      <!-- GIFs en las esquinas -->
+      <img src="./source/img/bubu-dudu-bubu.gif" alt="Bubu Dudu Bubu" class="gif-esquina izquierda">
+      <img src="./source/img/tonibear-bear.gif" alt="Toni Bear" class="gif-esquina derecha">
+    </div>
+  </div>
+
+
+<div id="cuarto-modal" class="modal">
+    <div class="modal-content4">
+      <div id="celebracion" style="display: none;"> 
+        <img src="./source/img/tkthao219-bubududu.gif" alt="Bubu Dudu" class="gif-celebracion gif-top">
+        <div class="mensaje-celebracion">¡LISTO, HAS CONCRETADO LA CITA! JAJDJASJJDA</div>
+        <div class="gif-container-bottom">
+          <img src="./source/img/mimibubu.gif" alt="Mimi Bubu" class="gif-celebracion gif-bottom-left">
+          <img src="./source/img/love (1).gif" alt="Love" class="gif-celebracion gif-bottom-right">
+        </div>
+      </div>
+    </div>
+</div>
+
+
+<!-- Celebración después de confirmar la hora -->
+<div id="celebracion" style="display: none;">
+  
+</div>
+
+<!-- Confeti mejorado -->
+<canvas id="confeti"></canvas>
+
+
+  <!-- Modal para "No" -->
+  <div id="modal-no" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <p id="modal-no-text"></p>
+      <img id="modal-no-gif" src="./source/img/sad.gif" alt="Gif" style="width: 100px;">
+    </div>
+  </div>
+
+  <!-- Animación de girasoles -->
+  <div id="girasoles-lluvia"></div>
+
+  <!-- Audio -->
+  <audio id="background-music" src="./source/audio/Instrumental KimiNiTodoke.mp3" loop></audio>
+  <audio id="pop-sound" src="./source/audio/bubble-pop.mp3"></audio>
+  <audio id="pao-sound" src="./source/audio/Paopaomochi.mp3" preload="auto"></audio>
+  <audio id="confeti-sound" src="./source/audio/Voicy_Confetti sound effect.mp3"></audio>
+
+  <script src="./js/script.js"></script>
+</body>
+</html>

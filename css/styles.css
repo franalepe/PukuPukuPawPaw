@@ -1,0 +1,420 @@
+body {
+  font-family: 'serif';
+  font-weight: bold;
+  color: #6b4226;
+  text-align: center;
+  padding: 20px;
+  margin: 0;
+  background-image: url('../source/img/PAOLA2662851.jpg');
+  background-size: cover;
+  background-position: center;
+  background-blend-mode: overlay;
+  background-color: rgba(255, 204, 203, 0.8);
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.container {
+  background-color: rgba(255, 239, 219, 0.9);
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+  max-width: 450px;
+  width: 100%;
+  animation: fadeIn 2s ease-in-out;
+}
+
+h1 {
+  color: #d88a8a;
+  font-size: 26px;
+  font-family: 'Dancing Script', cursive;
+}
+
+.special {
+  color: #e91e63;
+}
+
+.valentin {
+  color: #f4d03f;
+}
+
+.buttons {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+.buttons button {
+  padding: 12px 24px;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.buttons button:hover {
+  transform: scale(1.1);
+}
+
+#btn-si {
+  background-color: #f4d03f;
+  color: #fff;
+  animation: pulse 1.5s infinite;
+}
+
+#btn-no {
+  background-color: #e0e0e0;
+  color: #333;
+  position: relative;
+  transition: left 0.5s ease, top 0.5s ease; /* Transición suave */
+}
+
+.girasol-icon {
+  width: 35px;
+  height: 35px;
+  margin-left: 5px;
+}
+
+.modal {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  justify-content: center;
+  align-items: center;
+  animation: fadeIn 1s;
+  z-index: 1000; /* Asegura que los modales estén por encima de todo */
+}
+
+.modal-content {  
+  background-color: #fff;
+  padding: 25px;
+  border-radius: 15px;
+  text-align: center;
+  z-index: 1001; /* Asegura que el contenido del modal esté por encima del fondo */
+}
+
+.modal-content3 {
+  background-color: rgb(251 251 251 / 10%);
+  width: 785px;
+  height: 500px;
+  border-radius: 12px;
+  text-align: center;
+  z-index: 1001; /* Asegura que el contenido del modal esté por encima del fondo */
+}
+
+.modal-content4 {
+  background-color: #ffffff;
+  width: 90%;
+  max-width: 500px;
+  min-height: 320px;
+  border-radius: 12px;
+  text-align: center;
+  z-index: 1001;
+  position: relative;
+  padding: 30px 20px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+.close {
+  cursor: pointer;
+  float: right;
+  font-size: 20px;
+}
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+/* Animación de girasoles */
+@keyframes caer {
+  0% { transform: translateY(-100px) rotate(0deg); }
+  100% { transform: translateY(100vh) rotate(360deg); }
+}
+
+@keyframes formar-corazon {
+  0% { transform: translateY(-100px) rotate(0deg); }
+  50% { transform: translateY(50vh) rotate(180deg); }
+  100% { transform: translateY(100vh) rotate(360deg); }
+}
+
+.girasol {
+  position: fixed;
+  width: 50px;
+  height: 50px;
+  background-image: url('../source/img/mini_girasol.png');
+  background-size: cover;
+  animation: caer 8s linear infinite;
+  top: -50px;
+  cursor: pointer;
+}
+
+.girasol.corazon {
+  animation: formar-corazon 8s linear infinite;
+}
+
+.girasol.pop {
+  animation: pop 0.5s ease-out forwards;
+}
+
+@keyframes pop {
+  0% { transform: scale(1); opacity: 1; }
+  100% { transform: scale(2); opacity: 0; }
+}
+
+.gradient-effect {
+  background: linear-gradient(45deg, #ffcc00, #ff6699); /* Cambia los colores según tu preferencia */
+  transition: background 0.5s ease; /* Transición suave */
+}
+
+.movable-gif {
+  left: 351px;
+  top: 427px;
+  width: 100px; /* Ajusta el tamaño según sea necesario */
+  position: absolute; /* Para poder moverlos libremente */
+  cursor: grab; /* Cambia el cursor al pasar el mouse */
+  z-index: 1100;
+}
+
+
+/* Áreas de caída */
+#drop-area-left, #drop-area-right {
+  position: fixed;
+  width: 150px;
+  height: 100px;
+  background-color: rgba(255, 255, 255, 0.8);
+  border: 2px dashed #ff6699;
+  border-radius: 10px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 16px;
+  color: #333;
+  z-index: 1000;
+}
+
+#drop-area-left {
+  top: 20%;
+  left: 70%; /* Más separación en móvil */
+}
+
+#drop-area-right {
+  top: 20%;
+  right: 70%; /* Más separación en móvil */
+}
+
+/* GIFs en las esquinas de la ventana de horas */
+.gif-esquina {
+  position: absolute;
+  width: 50px;
+  height: 50px;
+}
+
+.izquierda {
+  left: 10px;
+  bottom: 10px;
+}
+
+.derecha {
+  right: 10px;
+  bottom: 10px;
+}
+
+/* Celebración */
+#celebracion {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.mensaje-celebracion {
+  font: oblique bold 120%;
+  font-size: 22px;
+  font-weight: bold;
+  color: #daa637;
+  text-align: center;
+  margin: 15px 0;
+  width: 100%;
+  padding: 0 10px;
+  box-sizing: border-box;
+  z-index: 2;
+  position: relative;
+}
+
+.gif-celebracion {
+  width: 70px;
+  height: auto;
+  max-height: 90px;
+  position: static;
+}
+
+.gif-container-bottom {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  margin-top: 15px;
+}
+
+.gif-top {
+  margin-bottom: 10px;
+}
+
+.gif-bottom-left {
+  margin-right: 10px;
+}
+
+.gif-bottom-right {
+  margin-left: 10px;
+}
+
+/* Confeti mejorado */
+#confeti {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10001;
+}
+
+#boton-oculto {
+  display: none; /* Oculto inicialmente */
+  margin-top: 50px;
+  text-align: center;
+  opacity: 0; /* Inicia invisible */
+  transition: opacity 1s ease; /* Transición suave */
+}
+
+#boton-oculto.visible {
+  opacity: 1; /* Visible con transición */
+}
+
+#btn-bloqueado {
+  background-color: #f4d03f;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 24px;
+  font-size: 18px;
+  cursor: not-allowed; /* Cursor de "no permitido" */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px; /* Espacio entre el candado y el texto */
+  opacity: 0.7; /* Hace que el botón se vea "bloqueado" */
+  transition: opacity 0.3s ease;
+}
+
+#btn-bloqueado.desbloqueado {
+  opacity: 1;
+  cursor: pointer;
+  background-color: #e91e63; /* Cambia el color cuando esté desbloqueado */
+}
+
+/* Estilos para el contador */
+#contador {
+  font-size: 14px;
+  color: #6b4226;
+  margin-left: 10px;
+}
+
+/* Estilos para el icono del candado */
+#icono-candado {
+  font-size: 20px;
+}
+
+/* Estilos responsivos para diferentes tamaños de pantalla */
+@media (min-width: 768px) {
+  .gif-celebracion {
+    width: 80px;
+    max-height: 100px;
+  }
+  
+  .modal-content4 {
+    padding: 40px 30px;
+  }
+  
+  .mensaje-celebracion {
+    font-size: 24px;
+    margin: 20px 0;
+  }
+  
+  .gif-container-bottom {
+    margin-top: 25px;
+  }
+}
+
+/* Ajustes para móvil */
+@media (max-width: 767px) {
+  #drop-area-left {
+    top: 30%;
+    left: 5%;
+  }
+
+  #drop-area-right {
+    top: 30%;
+    right: 5%;
+  }
+  
+  .modal-content3 {
+    width: 90%;
+    height: auto;
+    min-height: 400px;
+  }
+  
+  .gif-celebracion {
+    width: 60px;
+    max-height: 80px;
+  }
+  
+  .mensaje-celebracion {
+    font-size: 18px;
+    margin: 10px 0;
+  }
+  
+  .gif-container-bottom {
+    margin-top: 15px;
+  }
+}
+
+/* Ajustes para pantallas muy pequeñas */
+@media (max-width: 320px) {
+  .gif-celebracion {
+    width: 50px;
+    max-height: 70px;
+  }
+  
+  .mensaje-celebracion {
+    font-size: 16px;
+  }
+}
