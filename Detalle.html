@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Puzzle Picrow</title>
+  <title>Puzzle Para mi nena</title>
   <style>
     body {
       font-family: 'serif';
@@ -54,29 +54,20 @@
       position: absolute;
       box-sizing: border-box;
       border: 1px solid #fff;
-      transition: all 0.2s ease;
       background-size: 300px 300px;
-      touch-action: none; /* Mejora para dispositivos táctiles */
-    }
-
-    .puzzle-piece:hover {
-      box-shadow: 0 0 5px rgba(233, 30, 99, 0.5);
+      transition: top 0.2s ease, left 0.2s ease;
     }
 
     .puzzle-piece.draggable {
-      cursor: grab;
-    }
-
-    .puzzle-piece.dragging {
-      opacity: 0.8;
-      z-index: 1000;
-      cursor: grabbing;
+      cursor: pointer;
+      box-shadow: 0 0 10px #f4d03f;
+      animation: pulse 1.5s infinite;
     }
 
     .empty {
       background-image: none !important;
-      background-color: transparent;
-      border: none;
+      background-color: rgba(255, 255, 255, 0.1);
+      border: 2px dashed rgba(233, 30, 99, 0.3);
     }
 
     .controls {
@@ -159,9 +150,9 @@
     }
 
     @keyframes pulse {
-      0% { transform: scale(1); }
-      50% { transform: scale(1.1); }
-      100% { transform: scale(1); }
+      0% { transform: scale(1); box-shadow: 0 0 5px #f4d03f; }
+      50% { transform: scale(1.05); box-shadow: 0 0 15px #f4d03f; }
+      100% { transform: scale(1); box-shadow: 0 0 5px #f4d03f; }
     }
 
     .luciernaga {
@@ -257,8 +248,6 @@
       let showingHint = false;
       let currentImage = './source/img/sawako.gif'; // Imagen inicial
       let puzzleLevel = 1; // Nivel 1: Sawako, Nivel 2: Imagen especial
-      let isDragging = false;
-      let draggedPiece = null;
       
       // Crear las piezas del puzzle
       function createPuzzle() {
@@ -287,6 +276,8 @@
             // Guardar la posición original para verificar si el puzzle está resuelto
             piece.dataset.row = row;
             piece.dataset.col = col;
+            piece.dataset.currentRow = row;
+            piece.dataset.currentCol = col;
             
             puzzle.appendChild(piece);
             pieces.push({
@@ -299,19 +290,16 @@
           }
         }
         
-        // Actualizar las piezas arrastrables
-        updateDraggablePieces();
+        // Actualizar las piezas movibles
+        updateMovablePieces();
       }
       
-      // Actualizar qué piezas son arrastrables (solo las adyacentes al espacio vacío)
-      function updateDraggablePieces() {
+      // Actualizar qué piezas son movibles (solo las adyacentes al espacio vacío)
+      function updateMovablePieces() {
         // Primero, quitar la clase draggable de todas las piezas
         pieces.forEach(piece => {
           piece.element.classList.remove('draggable');
-          
-          // Quitar los event listeners de arrastre
-          piece.element.removeEventListener('mousedown', handleDragStart);
-          piece.element.removeEventListener('touchstart', handleDragStart);
+          piece.element.onclick = null;
         });
         
         // Luego, añadir la clase draggable solo a las piezas adyacentes al espacio vacío
@@ -327,174 +315,62 @@
           if (isAdjacent && !piece.element.classList.contains('empty')) {
             piece.element.classList.add('draggable');
             
-            // Añadir event listeners para arrastre
-            piece.element.addEventListener('mousedown', handleDragStart);
-            piece.element.addEventListener('touchstart', handleDragStart);
+            // Añadir evento de clic para mover la pieza
+            piece.element.onclick = function() {
+              movePiece(piece);
+            };
           }
         });
       }
       
-      // Manejar el inicio del arrastre
-      function handleDragStart(e) {
-        e.preventDefault();
+      // Mover una pieza al espacio vacío
+      function movePiece(piece) {
+        // Reproducir sonido de movimiento
+        moveSound.currentTime = 0;
+        moveSound.play();
         
-        // Solo permitir arrastrar piezas con la clase 'draggable'
-        if (!this.classList.contains('draggable')) return;
+        // Guardar la posición actual de la pieza
+        const oldRow = piece.currentRow;
+        const oldCol = piece.currentCol;
         
-        isDragging = true;
-        draggedPiece = this;
-        draggedPiece.classList.add('dragging');
+        // Mover la pieza a la posición del espacio vacío
+        piece.element.style.top = `${emptyPos.row * 100}px`;
+        piece.element.style.left = `${emptyPos.col * 100}px`;
         
-        // Encontrar la pieza en el array
-        const pieceIndex = pieces.findIndex(p => p.element === draggedPiece);
-        const piece = pieces[pieceIndex];
+        // Actualizar la posición actual de la pieza
+        piece.currentRow = emptyPos.row;
+        piece.currentCol = emptyPos.col;
+        piece.element.dataset.currentRow = emptyPos.row;
+        piece.element.dataset.currentCol = emptyPos.col;
         
-        // Guardar la posición inicial para el arrastre
-        let startX, startY;
-        if (e.type === 'mousedown') {
-          startX = e.clientX;
-          startY = e.clientY;
-        } else {
-          startX = e.touches[0].clientX;
-          startY = e.touches[0].clientY;
-        }
+        // Actualizar la posición del espacio vacío
+        emptyPos.row = oldRow;
+        emptyPos.col = oldCol;
         
-        // Añadir event listeners para el movimiento y soltar
-        document.addEventListener('mousemove', handleDragMove);
-        document.addEventListener('touchmove', handleDragMove, { passive: false });
-        document.addEventListener('mouseup', handleDragEnd);
-        document.addEventListener('touchend', handleDragEnd);
+        // Incrementar el contador de movimientos
+        moves++;
+        moveCount.textContent = moves;
         
-        // Manejar el movimiento durante el arrastre
-        function handleDragMove(e) {
-          if (!isDragging) return;
-          
-          e.preventDefault();
-          
-          let clientX, clientY;
-          if (e.type === 'mousemove') {
-            clientX = e.clientX;
-            clientY = e.clientY;
-          } else {
-            clientX = e.touches[0].clientX;
-            clientY = e.touches[0].clientY;
-          }
-          
-          // Calcular el desplazamiento
-          const deltaX = clientX - startX;
-          const deltaY = clientY - startY;
-          
-          // Limitar el movimiento a la dirección del espacio vacío
-          let newX = parseInt(draggedPiece.style.left);
-          let newY = parseInt(draggedPiece.style.top);
-          
-          if (piece.currentRow === emptyPos.row) {
-            // Movimiento horizontal
-            newX = parseInt(draggedPiece.style.left) + deltaX;
-            // Limitar el movimiento horizontal
-            const emptyX = emptyPos.col * 100;
-            if ((emptyPos.col > piece.currentCol && newX > emptyX) || 
-                (emptyPos.col < piece.currentCol && newX < emptyX)) {
-              newX = parseInt(draggedPiece.style.left);
-            }
-          } else if (piece.currentCol === emptyPos.col) {
-            // Movimiento vertical
-            newY = parseInt(draggedPiece.style.top) + deltaY;
-            // Limitar el movimiento vertical
-            const emptyY = emptyPos.row * 100;
-            if ((emptyPos.row > piece.currentRow && newY > emptyY) || 
-                (emptyPos.row < piece.currentRow && newY < emptyY)) {
-              newY = parseInt(draggedPiece.style.top);
-            }
-          }
-          
-          // Actualizar la posición
-          draggedPiece.style.left = `${newX}px`;
-          draggedPiece.style.top = `${newY}px`;
-          
-          // Actualizar el punto de inicio para el próximo movimiento
-          startX = clientX;
-          startY = clientY;
-        }
+        // Actualizar las piezas movibles
+        updateMovablePieces();
         
-        // Manejar el final del arrastre
-        function handleDragEnd() {
-          if (!isDragging) return;
-          
-          isDragging = false;
-          draggedPiece.classList.remove('dragging');
-          
-          // Encontrar la pieza en el array
-          const pieceIndex = pieces.findIndex(p => p.element === draggedPiece);
-          const piece = pieces[pieceIndex];
-          
-          // Verificar si la pieza está lo suficientemente cerca del espacio vacío
-          const pieceRect = draggedPiece.getBoundingClientRect();
-          const emptyRect = pieces.find(p => p.currentRow === emptyPos.row && p.currentCol === emptyPos.col).element.getBoundingClientRect();
-          
-          const distance = Math.sqrt(
-            Math.pow(pieceRect.left - emptyRect.left, 2) + 
-            Math.pow(pieceRect.top - emptyRect.top, 2)
-          );
-          
-          // Si la pieza está cerca del espacio vacío, moverla
-          if (distance < 100) {
-            // Reproducir sonido de movimiento
-            moveSound.currentTime = 0;
-            moveSound.play();
-            
-            // Mover la pieza a la posición del espacio vacío
-            draggedPiece.style.top = `${emptyPos.row * 100}px`;
-            draggedPiece.style.left = `${emptyPos.col * 100}px`;
-            
-            // Actualizar la posición actual de la pieza
-            piece.currentRow = emptyPos.row;
-            piece.currentCol = emptyPos.col;
-            
-            // Actualizar la posición del espacio vacío
-            const oldEmptyRow = emptyPos.row;
-            const oldEmptyCol = emptyPos.col;
-            emptyPos.row = parseInt(draggedPiece.dataset.row);
-            emptyPos.col = parseInt(draggedPiece.dataset.col);
-            
-            // Incrementar el contador de movimientos
-            moves++;
-            moveCount.textContent = moves;
-            
-            // Actualizar las piezas arrastrables
-            updateDraggablePieces();
-            
-            // Verificar si el puzzle está resuelto
-            if (isPuzzleSolved()) {
+        // Verificar si el puzzle está resuelto
+        if (isPuzzleSolved()) {
+          setTimeout(() => {
+            if (puzzleLevel === 1) {
+              // Cambiar al siguiente nivel
+              puzzleLevel = 2;
+              currentImage = './source/img/PaoxFran.png';
+              resetPuzzle();
+              message.textContent = "¡Ahora completa el segundo puzzle!";
               setTimeout(() => {
-                if (puzzleLevel === 1) {
-                  // Cambiar al siguiente nivel
-                  puzzleLevel = 2;
-                  currentImage = './source/img/PaoxFran.png';
-                  resetPuzzle();
-                  message.textContent = "¡Ahora completa el segundo puzzle!";
-                  setTimeout(() => {
-                    message.textContent = "";
-                  }, 3000);
-                } else {
-                  // Mostrar mensaje de éxito final
-                  showSuccessMessage();
-                }
-              }, 500);
+                message.textContent = "";
+              }, 3000);
+            } else {
+              // Mostrar mensaje de éxito final
+              showSuccessMessage();
             }
-          } else {
-            // Si no está lo suficientemente cerca, volver a la posición original
-            draggedPiece.style.top = `${piece.currentRow * 100}px`;
-            draggedPiece.style.left = `${piece.currentCol * 100}px`;
-          }
-          
-          // Quitar los event listeners
-          document.removeEventListener('mousemove', handleDragMove);
-          document.removeEventListener('touchmove', handleDragMove);
-          document.removeEventListener('mouseup', handleDragEnd);
-          document.removeEventListener('touchend', handleDragEnd);
-          
-          draggedPiece = null;
+          }, 500);
         }
       }
       
@@ -527,57 +403,48 @@
         
         // Realizar una serie de movimientos aleatorios válidos
         // Esto garantiza que el puzzle sea solvable
-        for (let i = 0; i < 100; i++) {
+        for (let i = 0; i < 50; i++) {
           const possibleMoves = [];
           
-          // Arriba
-          if (emptyPos.row > 0) {
-            possibleMoves.push({ row: emptyPos.row - 1, col: emptyPos.col });
-          }
-          // Abajo
-          if (emptyPos.row < 2) {
-            possibleMoves.push({ row: emptyPos.row + 1, col: emptyPos.col });
-          }
-          // Izquierda
-          if (emptyPos.col > 0) {
-            possibleMoves.push({ row: emptyPos.row, col: emptyPos.col - 1 });
-          }
-          // Derecha
-          if (emptyPos.col < 2) {
-            possibleMoves.push({ row: emptyPos.row, col: emptyPos.col + 1 });
-          }
+          // Encontrar piezas adyacentes al espacio vacío
+          pieces.forEach(piece => {
+            if (piece.element.classList.contains('empty')) return;
+            
+            const isAdjacent = 
+              (piece.currentRow === emptyPos.row && Math.abs(piece.currentCol - emptyPos.col) === 1) || 
+              (piece.currentCol === emptyPos.col && Math.abs(piece.currentRow - emptyPos.row) === 1);
+            
+            if (isAdjacent) {
+              possibleMoves.push(piece);
+            }
+          });
           
           // Seleccionar un movimiento aleatorio
-          const randomMove = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
-          
-          // Mover la pieza (sin incrementar el contador de movimientos)
-          const pieceIndex = pieces.findIndex(p => 
-            p.currentRow === randomMove.row && p.currentCol === randomMove.col
-          );
-          
-          if (pieceIndex !== -1) {
-            const piece = pieces[pieceIndex];
+          if (possibleMoves.length > 0) {
+            const randomPiece = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+            
+            // Guardar la posición actual de la pieza
+            const oldRow = randomPiece.currentRow;
+            const oldCol = randomPiece.currentCol;
             
             // Mover la pieza a la posición del espacio vacío
-            piece.element.style.top = `${emptyPos.row * 100}px`;
-            piece.element.style.left = `${emptyPos.col * 100}px`;
+            randomPiece.element.style.top = `${emptyPos.row * 100}px`;
+            randomPiece.element.style.left = `${emptyPos.col * 100}px`;
             
             // Actualizar la posición actual de la pieza
-            piece.currentRow = emptyPos.row;
-            piece.currentCol = emptyPos.col;
+            randomPiece.currentRow = emptyPos.row;
+            randomPiece.currentCol = emptyPos.col;
+            randomPiece.element.dataset.currentRow = emptyPos.row;
+            randomPiece.element.dataset.currentCol = emptyPos.col;
             
             // Actualizar la posición del espacio vacío
-            emptyPos.row = randomMove.row;
-            emptyPos.col = randomMove.col;
+            emptyPos.row = oldRow;
+            emptyPos.col = oldCol;
           }
         }
         
-        // Reiniciar el contador de movimientos después de mezclar
-        moves = 0;
-        moveCount.textContent = moves;
-        
-        // Actualizar las piezas arrastrables
-        updateDraggablePieces();
+        // Actualizar las piezas movibles
+        updateMovablePieces();
       }
       
       // Mostrar pista
