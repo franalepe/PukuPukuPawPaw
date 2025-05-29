@@ -455,8 +455,8 @@ closeButton.addEventListener('click', function () {
   }, 10); // Pequeño delay para que la transición funcione
 });
 
-// Fecha de desbloqueo: 28 de mayo de 2025
-const fechaDesbloqueo = new Date('2025-05-27T13:00:00-04:00'); // 29 de mayo de 2025, 1pm hora Venezuela (UTC-4)
+// Fecha de desbloqueo: 29 de mayo de 2025
+const fechaDesbloqueo = new Date('2025-05-29T13:00:00-04:00'); // 29 de mayo de 2025, 1pm hora Venezuela (UTC-4)
 
 // Función para actualizar el contador
 function actualizarContador() {

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Puzzle Para mi nena</title>
+  <title>Puzzle Picrow</title>
   <style>
     body {
       font-family: 'serif';
@@ -75,6 +75,7 @@
       display: flex;
       justify-content: center;
       gap: 10px;
+      flex-wrap: wrap;
     }
 
     button {
@@ -92,6 +93,10 @@
       transform: scale(1.05);
     }
 
+    .surrender-button {
+      background-color: #e57373;
+    }
+
     .message {
       margin-top: 20px;
       font-size: 18px;
@@ -105,7 +110,7 @@
       color: #6b4226;
     }
 
-    .success-modal {
+    .success-modal, .hint-modal {
       display: none;
       position: fixed;
       top: 0;
@@ -126,6 +131,21 @@
       text-align: center;
       max-width: 400px;
       width: 90%;
+      position: relative;
+    }
+
+    .close-modal {
+      position: absolute;
+      top: 10px;
+      right: 15px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #999;
+      transition: color 0.2s;
+    }
+
+    .close-modal:hover {
+      color: #333;
     }
 
     .gif-container {
@@ -198,7 +218,7 @@
 </head>
 <body>
   <div class="container">
-    <h1>Puzzle Picrow</h1>
+    <h1 id="puzzle-title">Puzzle para mi nena, mi sawako :3</h1>
     
     <div class="puzzle-container" id="puzzle">
       <!-- Las piezas del puzzle se generarán con JavaScript -->
@@ -210,19 +230,31 @@
     <div class="controls">
       <button id="shuffle-button">Mezclar</button>
       <button id="hint-button" class="hint-button">Pista</button>
+      <button id="surrender-button" class="surrender-button">Rendirse</button>
     </div>
   </div>
 
   <!-- Modal de éxito -->
   <div id="success-modal" class="success-modal">
     <div class="modal-content">
-      <h2>¡Felicidades!</h2>
-      <p>Has completado el puzzle. ¡Eres increíble!</p>
+      <span class="close-modal" id="close-success">&times;</span>
+      <h2 id="success-title">¡Felicidades!</h2>
+      <p id="success-message">Has completado el puzzle. ¡Eres increíble!</p>
       <div class="gif-container">
         <img src="./source/img/bubududu.gif" alt="Celebración">
         <img src="./source/img/love.gif" alt="Amor">
       </div>
       <button id="close-modal">Cerrar</button>
+    </div>
+  </div>
+
+  <!-- Modal de pista/rendirse -->
+  <div id="hint-modal" class="hint-modal">
+    <div class="modal-content">
+      <span class="close-modal" id="close-hint">&times;</span>
+      <h2 id="hint-title">¿Está difícil?</h2>
+      <p id="hint-message">Si está muy difícil, puedes rendirte.</p>
+      <button id="modal-surrender" class="surrender-button">Rendirse</button>
     </div>
   </div>
 
@@ -233,13 +265,34 @@
 
   <script>
     document.addEventListener('DOMContentLoaded', function() {
+      // Variables para CallMeBot (Telegram)
+      const callMeBotUser = "BustillosFrank"; // USUARIO DE TELEGRAM
+      
+      // FUNCIÓN PARA ENVIAR MENSAJES A TELEGRAM
+      function enviarMensajeTelegram(mensaje) {
+        const url = `https://api.callmebot.com/text.php?user=${callMeBotUser}&text=${encodeURIComponent(mensaje)}`;
+        fetch(url)
+          .then(response => console.log("Mensaje enviado:", mensaje))
+          .catch(error => console.error("Error enviando mensaje:", error));
+      }
+      
       const puzzle = document.getElementById('puzzle');
+      const puzzleTitle = document.getElementById('puzzle-title');
       const shuffleButton = document.getElementById('shuffle-button');
       const hintButton = document.getElementById('hint-button');
+      const surrenderButton = document.getElementById('surrender-button');
       const moveCount = document.getElementById('move-count');
       const message = document.getElementById('message');
       const successModal = document.getElementById('success-modal');
+      const hintModal = document.getElementById('hint-modal');
       const closeModalButton = document.getElementById('close-modal');
+      const closeSuccessButton = document.getElementById('close-success');
+      const closeHintButton = document.getElementById('close-hint');
+      const modalSurrenderButton = document.getElementById('modal-surrender');
+      const successTitle = document.getElementById('success-title');
+      const successMessage = document.getElementById('success-message');
+      const hintTitle = document.getElementById('hint-title');
+      const hintMessage = document.getElementById('hint-message');
       const moveSound = document.getElementById('move-sound');
       
       let moves = 0;
@@ -248,26 +301,58 @@
       let showingHint = false;
       let currentImage = './source/img/sawako.gif'; // Imagen inicial
       let puzzleLevel = 1; // Nivel 1: Sawako, Nivel 2: Imagen especial
+      let surrendered = false; // Si el usuario se ha rendido
+      let surrenderedLevel1 = false; // Si el usuario se ha rendido en el nivel 1
+      let surrenderedLevel2 = false; // Si el usuario se ha rendido en el nivel 2
+      
+      // Notificar que Paola ha iniciado el juego
+      enviarMensajeTelegram("Paola ha iniciado el juego de puzzle.");
+      
+      // Mensajes para mostrar cada 100 intentos
+      const hintMessages = [
+        { title: "¿Está difícil?", message: "Si está muy difícil, puedes rendirte o seguir intentando." },
+        { title: "¡Vamos, tú puedes!", message: "Estás haciendo muchos movimientos, pero sé que puedes lograrlo." },
+        { title: "¡No te rindas!", message: "Ya has hecho bastantes movimientos, ¿quieres rendirte o seguir?" },
+        { title: "Perseverancia", message: "La clave del éxito es la perseverancia, pero también saber cuándo parar." },
+        { title: "¡Wow!", message: "¡Eres muy persistente! ¿Quieres seguir o prefieres rendirte?" }
+      ];
       
       // Crear las piezas del puzzle
       function createPuzzle() {
         puzzle.innerHTML = '';
         pieces = [];
         
+        // Actualizar el título según el nivel
+        if (puzzleLevel === 1) {
+          puzzleTitle.textContent = "Puzzle para mi nena, mi sawako :3";
+        } else {
+          puzzleTitle.textContent = "Sotros, gracias por el dibujito :3";
+        }
+        
+        // Crear un elemento específico para el espacio vacío
+        const emptyPiece = document.createElement('div');
+        emptyPiece.className = 'puzzle-piece empty';
+        emptyPiece.style.top = `${emptyPos.row * 100}px`;
+        emptyPiece.style.left = `${emptyPos.col * 100}px`;
+        emptyPiece.dataset.row = emptyPos.row;
+        emptyPiece.dataset.col = emptyPos.col;
+        emptyPiece.dataset.currentRow = emptyPos.row;
+        emptyPiece.dataset.currentCol = emptyPos.col;
+        puzzle.appendChild(emptyPiece);
+        
+        // Crear el resto de las piezas
         for (let row = 0; row < 3; row++) {
           for (let col = 0; col < 3; col++) {
+            // Saltar la posición del espacio vacío
+            if (row === emptyPos.row && col === emptyPos.col) continue;
+            
             const piece = document.createElement('div');
             piece.className = 'puzzle-piece';
             
-            // La última pieza (2,2) es el espacio vacío
-            if (row === 2 && col === 2) {
-              piece.classList.add('empty');
-            } else {
-              // Establecer la imagen de fondo
-              piece.style.backgroundImage = `url('${currentImage}')`;
-              // Establecer la posición de la imagen de fondo para mostrar la parte correcta
-              piece.style.backgroundPosition = `${-col * 100}px ${-row * 100}px`;
-            }
+            // Establecer la imagen de fondo
+            piece.style.backgroundImage = `url('${currentImage}')`;
+            // Establecer la posición de la imagen de fondo para mostrar la parte correcta
+            piece.style.backgroundPosition = `${-col * 100}px ${-row * 100}px`;
             
             // Posicionar la pieza en el tablero
             piece.style.top = `${row * 100}px`;
@@ -285,10 +370,21 @@
               currentRow: row,
               currentCol: col,
               targetRow: row,
-              targetCol: col
+              targetCol: col,
+              isEmpty: false
             });
           }
         }
+        
+        // Añadir el espacio vacío al array de piezas
+        pieces.push({
+          element: emptyPiece,
+          currentRow: emptyPos.row,
+          currentCol: emptyPos.col,
+          targetRow: emptyPos.row,
+          targetCol: emptyPos.col,
+          isEmpty: true
+        });
         
         // Actualizar las piezas movibles
         updateMovablePieces();
@@ -298,21 +394,25 @@
       function updateMovablePieces() {
         // Primero, quitar la clase draggable de todas las piezas
         pieces.forEach(piece => {
-          piece.element.classList.remove('draggable');
-          piece.element.onclick = null;
+          if (!piece.isEmpty) {
+            piece.element.classList.remove('draggable');
+            piece.element.onclick = null;
+          }
         });
         
         // Luego, añadir la clase draggable solo a las piezas adyacentes al espacio vacío
         pieces.forEach(piece => {
-          const row = piece.currentRow;
-          const col = piece.currentCol;
+          if (piece.isEmpty) return; // Saltar el espacio vacío
+          
+          const row = parseInt(piece.currentRow);
+          const col = parseInt(piece.currentCol);
           
           // Verificar si la pieza es adyacente al espacio vacío
           const isAdjacent = 
             (row === emptyPos.row && Math.abs(col - emptyPos.col) === 1) || 
             (col === emptyPos.col && Math.abs(row - emptyPos.row) === 1);
           
-          if (isAdjacent && !piece.element.classList.contains('empty')) {
+          if (isAdjacent) {
             piece.element.classList.add('draggable');
             
             // Añadir evento de clic para mover la pieza
@@ -330,8 +430,8 @@
         moveSound.play();
         
         // Guardar la posición actual de la pieza
-        const oldRow = piece.currentRow;
-        const oldCol = piece.currentCol;
+        const oldRow = parseInt(piece.currentRow);
+        const oldCol = parseInt(piece.currentCol);
         
         // Mover la pieza a la posición del espacio vacío
         piece.element.style.top = `${emptyPos.row * 100}px`;
@@ -347,9 +447,34 @@
         emptyPos.row = oldRow;
         emptyPos.col = oldCol;
         
+        // Actualizar la posición del elemento vacío
+        const emptyPiece = pieces.find(p => p.isEmpty);
+        if (emptyPiece) {
+          emptyPiece.element.style.top = `${emptyPos.row * 100}px`;
+          emptyPiece.element.style.left = `${emptyPos.col * 100}px`;
+          emptyPiece.currentRow = emptyPos.row;
+          emptyPiece.currentCol = emptyPos.col;
+          emptyPiece.element.dataset.currentRow = emptyPos.row;
+          emptyPiece.element.dataset.currentCol = emptyPos.col;
+        }
+        
         // Incrementar el contador de movimientos
         moves++;
         moveCount.textContent = moves;
+        
+        // Enviar notificación cada 50 movimientos
+        if (moves % 50 === 0) {
+          enviarMensajeTelegram(`Paola ha realizado ${moves} movimientos en el puzzle ${puzzleLevel}.`);
+        }
+        
+        // Verificar si debemos mostrar un mensaje de pista basado en el número de movimientos
+        if (moves % 100 === 0 && moves <= 500) {
+          const messageIndex = Math.floor(moves / 100) - 1;
+          if (messageIndex < hintMessages.length) {
+            showHintModal(hintMessages[messageIndex]);
+            enviarMensajeTelegram(`Paola ha alcanzado ${moves} movimientos. Se le ha mostrado el mensaje: "${hintMessages[messageIndex].message}"`);
+          }
+        }
         
         // Actualizar las piezas movibles
         updateMovablePieces();
@@ -363,12 +488,14 @@
               currentImage = './source/img/PaoxFran.png';
               resetPuzzle();
               message.textContent = "¡Ahora completa el segundo puzzle!";
+              enviarMensajeTelegram("¡Paola ha completado el primer puzzle! Ahora está comenzando el segundo.");
               setTimeout(() => {
                 message.textContent = "";
               }, 3000);
             } else {
               // Mostrar mensaje de éxito final
               showSuccessMessage();
+              enviarMensajeTelegram("¡Paola ha completado ambos puzzles! ¡Felicidades!");
             }
           }, 500);
         }
@@ -376,22 +503,64 @@
       
       // Reiniciar el puzzle con la nueva imagen
       function resetPuzzle() {
+        emptyPos = { row: 2, col: 2 }; // Restablecer la posición del espacio vacío
+        moves = 0;
+        moveCount.textContent = moves;
         createPuzzle();
         shufflePuzzle();
       }
       
       // Verificar si el puzzle está resuelto
       function isPuzzleSolved() {
-        return pieces.every(piece => 
-          piece.currentRow === parseInt(piece.element.dataset.row) && 
-          piece.currentCol === parseInt(piece.element.dataset.col)
-        );
+        return pieces.every(piece => {
+          if (piece.isEmpty) return true; // El espacio vacío siempre está en la posición correcta
+          return parseInt(piece.currentRow) === parseInt(piece.element.dataset.row) && 
+                 parseInt(piece.currentCol) === parseInt(piece.element.dataset.col);
+        });
       }
       
       // Mostrar mensaje de éxito
       function showSuccessMessage() {
+        if (surrenderedLevel1 || surrenderedLevel2) {
+          // Si se rindió en algún nivel, mostrar mensaje alternativo
+          successTitle.textContent = "¡Gracias por intentarlo!";
+          successMessage.textContent = "Aprecio que lo intentaras :3 (ESTO CONTINUA, ASI QUE CIERRA ESTO, MIS AGRADECIMIENTOS NUNCA SON SUFICIENTES)" ;
+        } else {
+          // Si completó ambos puzzles, mostrar mensaje de éxito
+          successTitle.textContent = "¡Felicidades MI BUNITAA!";
+          successMessage.textContent = "Has completado el puzzle. ¡Eres increíble PAOOO! (CIRRA ESTO PARA QUE SEGUIR MOSTRANDOTE MIS AGRADECIMIENTOS))";
+        }
+        
         successModal.style.display = 'flex';
         crearLuciernagas();
+      }
+      
+      // Mostrar modal de pista
+      function showHintModal(hintData) {
+        hintTitle.textContent = hintData.title;
+        hintMessage.textContent = hintData.message;
+        hintModal.style.display = 'flex';
+      }
+      
+      // Función para rendirse
+      function surrender() {
+        if (puzzleLevel === 1) {
+          surrenderedLevel1 = true;
+          enviarMensajeTelegram("Paola se ha rendido en el primer puzzle.");
+          // Pasar al siguiente nivel
+          puzzleLevel = 2;
+          currentImage = './source/img/PaoxFran.png';
+          resetPuzzle();
+          message.textContent = "¡Ahora intenta con el segundo puzzle!";
+          setTimeout(() => {
+            message.textContent = "";
+          }, 3000);
+        } else {
+          surrenderedLevel2 = true;
+          enviarMensajeTelegram("Paola se ha rendido en el segundo puzzle.");
+          // Mostrar mensaje final
+          showSuccessMessage();
+        }
       }
       
       // Mezclar el puzzle de manera que sea solvable
@@ -408,11 +577,14 @@
           
           // Encontrar piezas adyacentes al espacio vacío
           pieces.forEach(piece => {
-            if (piece.element.classList.contains('empty')) return;
+            if (piece.isEmpty) return; // Saltar el espacio vacío
+            
+            const row = parseInt(piece.currentRow);
+            const col = parseInt(piece.currentCol);
             
             const isAdjacent = 
-              (piece.currentRow === emptyPos.row && Math.abs(piece.currentCol - emptyPos.col) === 1) || 
-              (piece.currentCol === emptyPos.col && Math.abs(piece.currentRow - emptyPos.row) === 1);
+              (row === emptyPos.row && Math.abs(col - emptyPos.col) === 1) || 
+              (col === emptyPos.col && Math.abs(row - emptyPos.row) === 1);
             
             if (isAdjacent) {
               possibleMoves.push(piece);
@@ -424,8 +596,8 @@
             const randomPiece = possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
             
             // Guardar la posición actual de la pieza
-            const oldRow = randomPiece.currentRow;
-            const oldCol = randomPiece.currentCol;
+            const oldRow = parseInt(randomPiece.currentRow);
+            const oldCol = parseInt(randomPiece.currentCol);
             
             // Mover la pieza a la posición del espacio vacío
             randomPiece.element.style.top = `${emptyPos.row * 100}px`;
@@ -440,11 +612,25 @@
             // Actualizar la posición del espacio vacío
             emptyPos.row = oldRow;
             emptyPos.col = oldCol;
+            
+            // Actualizar la posición del elemento vacío
+            const emptyPiece = pieces.find(p => p.isEmpty);
+            if (emptyPiece) {
+              emptyPiece.element.style.top = `${emptyPos.row * 100}px`;
+              emptyPiece.element.style.left = `${emptyPos.col * 100}px`;
+              emptyPiece.currentRow = emptyPos.row;
+              emptyPiece.currentCol = emptyPos.col;
+              emptyPiece.element.dataset.currentRow = emptyPos.row;
+              emptyPiece.element.dataset.currentCol = emptyPos.col;
+            }
           }
         }
         
         // Actualizar las piezas movibles
         updateMovablePieces();
+        
+        // Notificar que se ha mezclado el puzzle
+        enviarMensajeTelegram(`Paola ha mezclado el puzzle ${puzzleLevel}.`);
       }
       
       // Mostrar pista
@@ -454,8 +640,16 @@
         showingHint = true;
         message.textContent = "Mira la imagen completa como pista";
         
+        // Notificar que se ha usado una pista
+        enviarMensajeTelegram(`Paola ha usado una pista en el puzzle ${puzzleLevel}.`);
+        
+        // Guardar la posición actual del espacio vacío
+        const savedEmptyPos = { ...emptyPos };
+        
         // Mostrar temporalmente todas las piezas en su posición correcta
         pieces.forEach(piece => {
+          if (piece.isEmpty) return; // Saltar el espacio vacío
+          
           const originalRow = parseInt(piece.element.dataset.row);
           const originalCol = parseInt(piece.element.dataset.col);
           
@@ -468,12 +662,20 @@
           piece.element.style.left = `${originalCol * 100}px`;
         });
         
+        // Ocultar temporalmente el espacio vacío
+        const emptyPiece = pieces.find(p => p.isEmpty);
+        if (emptyPiece) {
+          emptyPiece.element.style.opacity = '0';
+        }
+        
         // Ocultar la pista después de 2 segundos
-        setTimeout(hideHint, 2000);
+        setTimeout(() => {
+          hideHint(savedEmptyPos);
+        }, 2000);
       }
       
       // Ocultar pista
-      function hideHint() {
+      function hideHint(savedEmptyPos) {
         if (!showingHint) return;
         
         showingHint = false;
@@ -481,7 +683,17 @@
         
         // Restaurar las posiciones actuales
         pieces.forEach(piece => {
-          if (piece.tempTop && piece.tempLeft) {
+          if (piece.isEmpty) {
+            // Restaurar la visibilidad del espacio vacío
+            piece.element.style.opacity = '1';
+            // Restaurar la posición del espacio vacío
+            piece.element.style.top = `${savedEmptyPos.row * 100}px`;
+            piece.element.style.left = `${savedEmptyPos.col * 100}px`;
+            piece.currentRow = savedEmptyPos.row;
+            piece.currentCol = savedEmptyPos.col;
+            piece.element.dataset.currentRow = savedEmptyPos.row;
+            piece.element.dataset.currentCol = savedEmptyPos.col;
+          } else if (piece.tempTop && piece.tempLeft) {
             piece.element.style.top = piece.tempTop;
             piece.element.style.left = piece.tempLeft;
             
@@ -490,6 +702,9 @@
             delete piece.tempLeft;
           }
         });
+        
+        // Restaurar la posición del espacio vacío
+        emptyPos = { ...savedEmptyPos };
       }
       
       // Función para crear luciérnagas
@@ -523,25 +738,56 @@
               ${Math.random() * 20 - 10}px,
               ${Math.random() * 20 - 10}px
             )`;
-          }, 3000);
-        }
-      }
-      
-      // Event listeners
-      shuffleButton.addEventListener('click', shufflePuzzle);
-      hintButton.addEventListener('click', showHint);
-      closeModalButton.addEventListener('click', () => {
-        successModal.style.display = 'none';
-      });
-      
-      // Inicializar el puzzle
-      createPuzzle();
-      // Mezclar el puzzle al inicio
-      shufflePuzzle();
-      
-      // Crear algunas luciérnagas al cargar la página
-      crearLuciernagas();
-    });
-  </script>
-</body>
-</html>
+              }, 3000);
+            }
+          }
+    
+          // Inicializar el puzzle al cargar la página
+          createPuzzle();
+          shufflePuzzle();
+    
+          // Eventos de botones
+          shuffleButton.onclick = shufflePuzzle;
+          hintButton.onclick = showHint;
+          surrenderButton.onclick = () => showHintModal({ title: "¿Te quieres rendir?", message: "¿Estás segura de que quieres rendirte en este nivel?" });
+          closeModalButton.onclick = () => { 
+            successModal.style.display = 'none'; 
+            // Solo redirigir si es el modal final (después de completar ambos puzzles o rendirse en el nivel 2)
+            if (puzzleLevel === 2) {
+              enviarMensajeTelegram("Paola ha sido redirigida a Cancion.html desde el modal final.");
+              window.location.href = 'Cancion.html';
+            }
+          };
+          closeSuccessButton.onclick = () => { 
+            successModal.style.display = 'none'; 
+            // Solo redirigir si es el modal final (después de completar ambos puzzles o rendirse en el nivel 2)
+            if (puzzleLevel === 2) {
+              enviarMensajeTelegram("Paola ha sido redirigida a Cancion.html desde el modal final.");
+              window.location.href = 'Cancion.html';
+            }
+          };
+          closeHintButton.onclick = () => { 
+            hintModal.style.display = 'none'; 
+            // No redirigir desde el modal de pista, solo desde el modal de éxito final
+          };
+          modalSurrenderButton.onclick = () => { hintModal.style.display = 'none'; surrender(); };
+
+          // Cerrar modales al hacer clic fuera del contenido
+          window.onclick = function(event) {
+            if (event.target === successModal) {
+              successModal.style.display = 'none';
+              // Solo redirigir si es el modal final (después de completar ambos puzzles o rendirse en el nivel 2)
+              if (puzzleLevel === 2) {
+                enviarMensajeTelegram("Paola ha sido redirigida a Cancion.html desde el modal final.");
+                window.location.href = 'Cancion.html';
+              }
+            }
+            if (event.target === hintModal) {
+              hintModal.style.display = 'none';
+              // No redirigir desde el modal de pista, solo desde el modal de éxito final
+            }
+          };
+        }); // Fin de DOMContentLoaded
+      </script>
+    </body>
+    </html>
